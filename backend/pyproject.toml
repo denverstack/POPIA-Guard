@@ -8,3 +8,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# B008: FastAPI's dependency injection idiom is `param = Depends(...)` in the
+# signature default — that's correct usage here, not the mutable-default bug
+# the rule exists to catch.
+ignore = ["B008"]

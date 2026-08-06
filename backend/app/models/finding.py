@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.time import utcnow
 from app.db.base import Base
 
 if TYPE_CHECKING:
@@ -42,6 +43,6 @@ class Finding(Base):
     line_number: Mapped[int] = mapped_column(Integer, nullable=False)
     # Redacted match only — never the raw sensitive value. See docs/DATABASE.md.
     matched_snippet: Mapped[str] = mapped_column(String(500), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     scan_job: Mapped["ScanJob"] = relationship(back_populates="findings")

@@ -1,13 +1,18 @@
-"""FastAPI application entrypoint.
+"""FastAPI application entrypoint."""
 
-Phase 1 exposes only a health check — the scanner, auth, and report
-endpoints are implemented in Phase 2 once the engine itself exists.
-"""
+import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.exceptions import AppError
+from app.core.logging import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -20,6 +25,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
+    """Every domain exception carries its own status code — this handler
+    just shapes the response consistently, it doesn't decide status codes.
+    """
+    logger.info(
+        "handled application error path=%s status=%d detail=%s",
+        request.url.path,
+        exc.status_code,
+        exc.message,
+    )
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
 
 @app.get("/health", tags=["health"])

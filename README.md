@@ -4,8 +4,8 @@ Source code compliance scanner that detects POPIA-sensitive data and leaked
 credentials in a codebase, then produces a report you can upload to S3 and
 review in a dashboard.
 
-> **Status:** Phase 2 complete — authentication, the scan API, and the
-> detection engine are implemented and tested end to end. No frontend yet.
+> **Status:** Phase 3 complete — full stack runs end to end: sign up, log
+> in, upload a zip, and see findings/risk score in the dashboard.
 > See [ROADMAP](#roadmap) below.
 
 ## Why this exists
@@ -49,12 +49,12 @@ See [`docs/DATABASE.md`](docs/DATABASE.md) for the schema and rationale.
 | Layer     | Choice                                             |
 |-----------|-----------------------------------------------------|
 | Backend   | FastAPI, SQLAlchemy, Alembic, Pydantic, PostgreSQL |
-| Frontend  | React, TypeScript, Vite, TailwindCSS               |
-| Cloud     | Amazon S3 (report storage, presigned URLs)         |
+| Frontend  | React, TypeScript, Vite, TailwindCSS v4, TanStack Query, Chart.js |
+| Cloud     | Amazon S3 (report storage, presigned URLs) — Phase 4 |
 | Auth      | JWT (password + bcrypt)                            |
 | Testing   | Pytest                                             |
 | Container | Docker, Docker Compose                             |
-| CI        | GitHub Actions (lint + test)                       |
+| CI        | GitHub Actions — Phase 5                            |
 
 ## Local development
 
@@ -63,8 +63,22 @@ cp .env.example .env
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-The API will be available at `http://localhost:8000`, with interactive docs
-at `http://localhost:8000/docs`.
+This brings up Postgres, the API, and the frontend together:
+
+- Dashboard: `http://localhost:5173`
+- API: `http://localhost:8000`, with interactive docs at `http://localhost:8000/docs`
+
+### Running the frontend on its own
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Requires the API running separately (`docker compose up api db`, or run it
+directly per the backend instructions below).
 
 ## Quick start (API)
 
@@ -103,11 +117,23 @@ pip install -r requirements.txt -r requirements-dev.txt
 pytest
 ```
 
+### Frontend checks
+
+```bash
+cd frontend
+npm install
+npm run lint       # oxlint
+npx tsc --noEmit -p tsconfig.app.json
+npm run build
+```
+
+There's no frontend test suite yet (component/E2E tests) — see the roadmap.
+
 ## Roadmap
 
 - [x] Phase 1 — Project structure, architecture, database design
 - [x] Phase 2 — Backend: auth, REST API, scanner engine implementation
-- [ ] Phase 3 — Frontend dashboard
+- [x] Phase 3 — Frontend dashboard
 - [ ] Phase 4 — S3 integration
 - [ ] Phase 5 — CI pipeline
 - [ ] Phase 6 — Documentation pass and v1.0.0 release

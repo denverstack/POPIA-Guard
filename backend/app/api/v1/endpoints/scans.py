@@ -10,6 +10,7 @@ from app.models.user import User
 from app.repositories.scan_repository import ScanRepository
 from app.schemas.finding import FindingRead
 from app.schemas.scan import ScanJobRead, ScanResultRead
+from app.services.report.scoring import compute_compliance_percentage, compute_risk_score
 from app.services.scan_service import run_zip_scan
 
 router = APIRouter()
@@ -40,16 +41,34 @@ def list_scans(
     return ScanRepository(db).list_scan_jobs(current_user.id)
 
 
-@router.get("/{scan_id}", response_model=ScanJobRead)
+@router.get("/{scan_id}", response_model=ScanResultRead)
 def get_scan(
     scan_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> ScanJobRead:
-    scan_job = ScanRepository(db).get_scan_job(scan_id, current_user.id)
+) -> ScanResultRead:
+    """Returns the scan job plus its findings and a freshly-computed score.
+
+    The score isn't persisted (no Report row yet — that lands in Phase 4
+    alongside S3 storage), so it's recomputed from the persisted findings
+    on every request. Cheap at this data size, and keeps scoring logic in
+    exactly one place rather than duplicating it in the frontend.
+    """
+    repo = ScanRepository(db)
+    scan_job = repo.get_scan_job(scan_id, current_user.id)
     if scan_job is None:
         raise NotFoundError("Scan not found")
-    return scan_job
+
+    findings = repo.get_findings(scan_id)
+    risk_score = compute_risk_score(findings)
+    compliance_percentage = compute_compliance_percentage(risk_score)
+
+    return ScanResultRead(
+        **ScanJobRead.model_validate(scan_job).model_dump(),
+        findings=[FindingRead.model_validate(f) for f in findings],
+        risk_score=risk_score,
+        compliance_percentage=compliance_percentage,
+    )
 
 
 @router.get("/{scan_id}/findings", response_model=list[FindingRead])

@@ -160,3 +160,28 @@ def test_get_scan_findings(client: TestClient, auth_headers: dict) -> None:
     findings = response.json()
     assert len(findings) == 1
     assert findings[0]["rule_id"] == "secret.generic_credential"
+
+
+def test_get_scan_detail_returns_findings_and_recomputed_score(
+    client: TestClient, auth_headers: dict
+) -> None:
+    zip_buffer = _build_zip(
+        {"config.py": "AWS_ACCESS_KEY_ID = 'AKIAABCDEFGHIJKLMNOP'\n"}
+    )
+    upload_response = client.post(
+        "/api/v1/scans",
+        headers=auth_headers,
+        files={"file": ("upload.zip", zip_buffer, "application/zip")},
+    )
+    scan_id = upload_response.json()["id"]
+
+    # A fresh GET (simulating revisiting the page later) should return the
+    # same findings and score as the original upload response — computed
+    # from persisted findings, not a stashed value from the upload call.
+    response = client.get(f"/api/v1/scans/{scan_id}", headers=auth_headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["findings"]) == 1
+    assert body["findings"][0]["rule_id"] == "secret.aws_access_key"
+    assert body["risk_score"] == 10.0  # critical severity weight
+    assert body["compliance_percentage"] == 90.0

@@ -4,8 +4,9 @@ Source code compliance scanner that detects POPIA-sensitive data and leaked
 credentials in a codebase, then produces a report you can upload to S3 and
 review in a dashboard.
 
-> **Status:** Phase 1 — project scaffolding, architecture, and database
-> design. Not yet functional end-to-end. See [ROADMAP](#roadmap) below.
+> **Status:** Phase 2 complete — authentication, the scan API, and the
+> detection engine are implemented and tested end to end. No frontend yet.
+> See [ROADMAP](#roadmap) below.
 
 ## Why this exists
 
@@ -65,6 +66,35 @@ docker compose -f docker/docker-compose.yml up --build
 The API will be available at `http://localhost:8000`, with interactive docs
 at `http://localhost:8000/docs`.
 
+## Quick start (API)
+
+Register, log in, and scan a zip of source files:
+
+```bash
+# Register
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "a-strong-password", "full_name": "Your Name"}'
+
+# Log in — grab the access_token from the response
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "a-strong-password"}'
+
+# Scan a zip of your project
+curl -X POST http://localhost:8000/api/v1/scans \
+  -H "Authorization: Bearer <access_token>" \
+  -F "file=@my-project.zip"
+
+# List your past scans
+curl http://localhost:8000/api/v1/scans \
+  -H "Authorization: Bearer <access_token>"
+```
+
+A scan response includes the computed findings, risk score, and compliance
+percentage inline — see [`docs/SCANNER_DESIGN.md`](docs/SCANNER_DESIGN.md)
+for what's detected and how findings are scored.
+
 ## Running tests
 
 ```bash
@@ -76,7 +106,7 @@ pytest
 ## Roadmap
 
 - [x] Phase 1 — Project structure, architecture, database design
-- [ ] Phase 2 — Backend: auth, REST API, scanner engine implementation
+- [x] Phase 2 — Backend: auth, REST API, scanner engine implementation
 - [ ] Phase 3 — Frontend dashboard
 - [ ] Phase 4 — S3 integration
 - [ ] Phase 5 — CI pipeline

@@ -28,3 +28,7 @@ class DuplicateEmailError(AppError):
 
 class UnsupportedUploadError(AppError):
     status_code = 400
+
+
+class StorageUnavailableError(AppError):
+    status_code = 502

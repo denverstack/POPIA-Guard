@@ -185,3 +185,45 @@ def test_get_scan_detail_returns_findings_and_recomputed_score(
     assert body["findings"][0]["rule_id"] == "secret.aws_access_key"
     assert body["risk_score"] == 10.0  # critical severity weight
     assert body["compliance_percentage"] == 90.0
+
+
+def test_scan_report_returns_working_presigned_url(client: TestClient, auth_headers: dict) -> None:
+    zip_buffer = _build_zip({"config.py": "AWS_ACCESS_KEY_ID = 'AKIAABCDEFGHIJKLMNOP'\n"})
+    upload_response = client.post(
+        "/api/v1/scans",
+        headers=auth_headers,
+        files={"file": ("upload.zip", zip_buffer, "application/zip")},
+    )
+    scan_id = upload_response.json()["id"]
+
+    response = client.get(f"/api/v1/scans/{scan_id}/report", headers=auth_headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["url"].startswith("http")
+    assert scan_id in body["url"]
+    assert body["expires_in"] == 3600
+
+    # Fetch the report directly from the presigned URL and confirm it's the
+    # real report content, not just a plausible-looking URL string.
+    import requests
+
+    report_response = requests.get(body["url"], timeout=5)
+    assert report_response.status_code == 200
+    report_body = report_response.json()
+    assert report_body["scan_id"] == scan_id
+    assert report_body["risk_score"] == 10.0
+    assert len(report_body["findings"]) == 1
+    assert report_body["findings"][0]["rule_id"] == "secret.aws_access_key"
+
+
+def test_scan_report_404_for_scan_without_report(client: TestClient, auth_headers: dict) -> None:
+    # A scan with no findings still completes and gets a report — so to
+    # exercise the "no report" branch, ask for a report on a scan id that
+    # doesn't exist at all (same code path as findings/detail 404s).
+    response = client.get("/api/v1/scans/not-a-real-id/report", headers=auth_headers)
+    assert response.status_code == 404
+
+
+def test_scan_report_requires_auth(client: TestClient) -> None:
+    response = client.get("/api/v1/scans/some-id/report")
+    assert response.status_code == 401

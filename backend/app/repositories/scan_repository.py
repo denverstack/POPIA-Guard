@@ -1,4 +1,4 @@
-"""Data access for ScanJob and Finding."""
+"""Data access for ScanJob, Finding, and Report."""
 
 from datetime import datetime
 from typing import Any
@@ -6,6 +6,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.models.finding import Finding
+from app.models.report import Report
 from app.models.scan import ScanJob
 
 
@@ -77,3 +78,27 @@ class ScanRepository:
             .order_by(Finding.severity.desc(), Finding.file_path)
             .all()
         )
+
+    def create_report(
+        self,
+        *,
+        scan_job_id: str,
+        risk_score: float,
+        compliance_percentage: float,
+        s3_key: str,
+        format: str = "json",
+    ) -> Report:
+        report = Report(
+            scan_job_id=scan_job_id,
+            risk_score=risk_score,
+            compliance_percentage=compliance_percentage,
+            s3_key=s3_key,
+            format=format,
+        )
+        self.db.add(report)
+        self.db.commit()
+        self.db.refresh(report)
+        return report
+
+    def get_report_by_scan_id(self, scan_job_id: str) -> Report | None:
+        return self.db.query(Report).filter(Report.scan_job_id == scan_job_id).first()

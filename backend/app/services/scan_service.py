@@ -17,8 +17,10 @@ from app.models.finding import Finding
 from app.models.scan import ScanJob, ScanStatus, SourceType
 from app.repositories.scan_repository import ScanRepository
 from app.services.archive import safe_extract
+from app.services.report.generator import build_report_document
 from app.services.report.scoring import compute_compliance_percentage, compute_risk_score
 from app.services.scanner.engine import scan_directory
+from app.services.storage.s3_client import S3StorageService
 
 logger = logging.getLogger(__name__)
 
@@ -87,9 +89,50 @@ def run_zip_scan(
         risk_score,
     )
 
+    _try_store_report(repo, scan_job, findings, risk_score, compliance_percentage, user_id)
+
     return ScanOutcome(
         scan_job=scan_job,
         findings=findings,
         risk_score=risk_score,
         compliance_percentage=compliance_percentage,
     )
+
+
+def _try_store_report(
+    repo: ScanRepository,
+    scan_job: ScanJob,
+    findings: list[Finding],
+    risk_score: float,
+    compliance_percentage: float,
+    user_id: str,
+) -> None:
+    """Uploads the report to S3 and records it — deliberately best-effort.
+
+    A scan's findings are already persisted and returned to the caller by
+    this point; if S3 is unreachable or misconfigured (no credentials in
+    local dev, wrong bucket, network issue), that shouldn't take down the
+    core scanning feature. We log and move on rather than raise — the
+    report simply won't be available via GET /scans/{id}/report until
+    storage is reachable on a later scan.
+
+    Catches Exception broadly, not just StorageError: this call also
+    involves a real network attempt (or its absence) that could surface
+    as connection errors below the botocore exception hierarchy in some
+    environments, and none of those should be allowed to fail a scan that
+    otherwise succeeded.
+    """
+    s3_key = f"reports/{user_id}/{scan_job.id}.json"
+    try:
+        storage = S3StorageService()
+        document = build_report_document(scan_job, findings, risk_score, compliance_percentage)
+        storage.upload_bytes(s3_key, document, content_type="application/json")
+        repo.create_report(
+            scan_job_id=scan_job.id,
+            risk_score=risk_score,
+            compliance_percentage=compliance_percentage,
+            s3_key=s3_key,
+        )
+        logger.info("report stored scan_id=%s s3_key=%s", scan_job.id, s3_key)
+    except Exception as exc:
+        logger.warning("report storage skipped scan_id=%s reason=%s", scan_job.id, exc)

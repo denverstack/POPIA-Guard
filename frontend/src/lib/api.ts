@@ -3,6 +3,11 @@ import type { ScanJob, ScanResult, Finding, User } from "@/types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 const TOKEN_STORAGE_KEY = "popia_guard_token";
 
+interface ReportUrl {
+  url: string;
+  expires_in: number;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -92,6 +97,10 @@ export const api = {
 
   getScanFindings(scanId: string): Promise<Finding[]> {
     return request<Finding[]>(`/scans/${scanId}/findings`);
+  },
+
+  getScanReport(scanId: string): Promise<ReportUrl> {
+    return request<ReportUrl>(`/scans/${scanId}/report`);
   },
 
   uploadScan(file: File): Promise<ScanResult> {

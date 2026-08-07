@@ -1,16 +1,19 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ShieldOff } from "lucide-react";
+import { ArrowLeft, ShieldOff, Download } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SeverityBadge } from "@/components/SeverityBadge";
 import { RiskGauge } from "@/components/RiskGauge";
 import { SeverityChart } from "@/components/SeverityChart";
 import { EmptyState } from "@/components/EmptyState";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 
 export function ScanDetailPage() {
   const { scanId } = useParams<{ scanId: string }>();
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const scanQuery = useQuery({
     queryKey: ["scan", scanId],
@@ -49,6 +52,24 @@ export function ScanDetailPage() {
 
   const scan = scanQuery.data;
 
+  async function handleDownload() {
+    if (!scanId) return;
+    setDownloadError(null);
+    setIsDownloading(true);
+    try {
+      const { url } = await api.getScanReport(scanId);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setDownloadError(
+        err instanceof ApiError && err.status === 404
+          ? "No report is available for this scan yet."
+          : "Couldn't get the report right now. Try again.",
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
   return (
     <Layout>
       <Link
@@ -69,6 +90,24 @@ export function ScanDetailPage() {
             <span className="text-sm text-text-secondary">{scan.files_scanned} files scanned</span>
           </div>
         </div>
+        {scan.status === "completed" && (
+          <div className="flex flex-col items-end gap-1.5">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="flex items-center gap-1.5 rounded-md border border-border-strong bg-card px-3 py-1.5 text-sm font-medium text-text-primary transition-colors hover:bg-surface-hover disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+              {isDownloading ? "Fetching…" : "Download report"}
+            </button>
+            {downloadError && (
+              <p role="alert" className="text-xs text-critical">
+                {downloadError}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {scan.status === "completed" && (

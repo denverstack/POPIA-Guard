@@ -15,14 +15,14 @@ a zip, get back scored findings, download a report.
   checksum validation, email, SA phone numbers, bank account numbers with
   context validation) and 4 secret categories (AWS access keys, GitHub
   tokens, JWTs, generic password/API-key assignments). Redacted match
-  storage — raw sensitive values never persisted.
+  storage, raw sensitive values never persisted.
 - **REST API** (FastAPI): JWT auth, scan upload with zip-slip-protected
   extraction, findings retrieval, presigned report download URLs.
 - **React dashboard**: login/register, drag-and-drop scan upload, a
   findings table with severity badges, a radial compliance gauge, and a
   severity breakdown chart.
 - **S3 report storage**: JSON reports uploaded per scan, retrieved via
-  presigned URL (fresh on each request, never stored). Best-effort — an
+  presigned URL (fresh on each request, never stored). Best-effort, an
   S3 outage doesn't fail the underlying scan.
 - **PostgreSQL schema** via SQLAlchemy + Alembic: users, scan jobs,
   findings, reports.
@@ -37,7 +37,7 @@ a zip, get back scored findings, download a report.
 ### Fixed along the way
 
 Real bugs caught during development, not just written and assumed
-correct — kept here rather than buried in commit history:
+correct. Kept here rather than buried in commit history:
 
 - SA-phone-number regex never matched the `+27`-prefixed format — `\b`
   doesn't work as a word boundary before `+`.

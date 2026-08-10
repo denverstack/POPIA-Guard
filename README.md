@@ -1,12 +1,13 @@
 # POPIA Guard
 
+[![CI](https://github.com/denverstack/POPIA-Guard/actions/workflows/ci.yml/badge.svg)](https://github.com/denverstack/POPIA-Guard/actions/workflows/ci.yml)
+
 Source code compliance scanner that detects POPIA-sensitive data and leaked
 credentials in a codebase, then produces a report you can upload to S3 and
 review in a dashboard.
 
-> **Status:** Phase 4 complete — scan reports are stored in S3 and
-> downloadable via presigned URL, with a documented least-privilege IAM
-> policy and production Docker images. See [ROADMAP](#roadmap) below.
+> **Status:** Phase 5 complete — CI runs backend lint/tests and frontend
+> lint/type-check/build on every push. See [ROADMAP](#roadmap) below.
 
 ## Why this exists
 
@@ -54,7 +55,7 @@ See [`docs/DATABASE.md`](docs/DATABASE.md) for the schema and rationale.
 | Auth      | JWT (password + bcrypt)                            |
 | Testing   | Pytest                                             |
 | Container | Docker, Docker Compose                             |
-| CI        | GitHub Actions — Phase 5                            |
+| CI        | GitHub Actions (backend lint+test, frontend lint+build) |
 
 ## Local development
 
@@ -142,7 +143,7 @@ There's no frontend test suite yet (component/E2E tests) — see the roadmap.
 - [x] Phase 2 — Backend: auth, REST API, scanner engine implementation
 - [x] Phase 3 — Frontend dashboard
 - [x] Phase 4 — S3 integration
-- [ ] Phase 5 — CI pipeline
+- [x] Phase 5 — CI pipeline
 - [ ] Phase 6 — Documentation pass and v1.0.0 release
 
 ## License

@@ -39,7 +39,7 @@ a zip, get back scored findings, download a report.
 Real bugs caught during development, not just written and assumed
 correct. Kept here rather than buried in commit history:
 
-- SA-phone-number regex never matched the `+27`-prefixed format — `\b`
+- SA-phone number regex never matched the `+27`-prefixed format  `\b`
   doesn't work as a word boundary before `+`.
 - `passlib` 1.7.4 + `bcrypt` 5.x are incompatible (bcrypt dropped an
   attribute passlib's version probe depends on), causing every password
@@ -47,7 +47,7 @@ correct. Kept here rather than buried in commit history:
   length. Pinned `bcrypt==4.0.1`.
 - `api.getScan()` was typed to return the lightweight `ScanJob` shape,
   but the backend endpoint actually returns the fuller `ScanResultRead`
-  (findings + score) — caught by `tsc`, not by manual testing.
+  (findings + score) caught by `tsc`, not by manual testing.
 - `datetime.utcnow()` (deprecated) replaced with a timezone-aware helper
   across all models and the scan service.
 

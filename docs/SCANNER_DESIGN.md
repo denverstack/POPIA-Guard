@@ -19,7 +19,7 @@ precision:
 
 | Rule ID              | What it catches                          | Validation                                  |
 |-----------------------|-------------------------------------------|----------------------------------------------|
-| `popia.sa_id_number`  | South African 13-digit ID numbers         | Luhn-style checksum on the last digit, plus a plausible YYMMDD prefix — this is what keeps it from matching arbitrary 13-digit strings |
+| `popia.sa_id_number`  | South African 13-digit ID numbers         | Luhn-style checksum on the last digit, plus a plausible YYMMDD prefix. This is what keeps it from matching arbitrary 13-digit strings |
 | `popia.email`         | Email addresses                           | Standard email regex |
 | `popia.phone_number`  | South African phone numbers (`+27`/`0` prefixed) | Digit count + prefix check |
 | `popia.bank_account`  | Bank account number patterns near banking keywords | Regex plus a proximity check for words like `account`, `acc_no`, `iban` in the same line reduces false positives on arbitrary long digit strings |

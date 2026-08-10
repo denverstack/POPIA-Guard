@@ -19,6 +19,9 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserRead, status_code=201)
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> UserRead:
+    """Creates a new account. Password is hashed with bcrypt before
+    storage; 409 if the email is already registered.
+    """
     repo = UserRepository(db)
     if repo.get_by_email(payload.email) is not None:
         raise DuplicateEmailError("An account with this email already exists")
@@ -34,6 +37,10 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> UserRead:
 
 @router.post("/login", response_model=Token)
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> Token:
+    """Exchanges email + password for a JWT bearer token. The token
+    carries no role/permission claims — see docs/DATABASE.md on why
+    RBAC is out of scope for this project.
+    """
     repo = UserRepository(db)
     user = repo.get_by_email(payload.email)
 

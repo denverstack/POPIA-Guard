@@ -45,7 +45,7 @@ def mock_s3_bucket():
         yield
 
 
-@pytest.fixture()
+@pytest.fixture
 def db_session():
     Base.metadata.create_all(bind=_engine)
     session = _TestingSessionLocal()
@@ -56,7 +56,7 @@ def db_session():
         Base.metadata.drop_all(bind=_engine)
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(db_session):
     def _override_get_db():
         yield db_session
@@ -67,7 +67,7 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture()
+@pytest.fixture
 def auth_headers(client: TestClient) -> dict[str, str]:
     """Registers and logs in a user, returning ready-to-use auth headers."""
     client.post(

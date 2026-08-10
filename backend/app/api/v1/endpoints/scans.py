@@ -26,6 +26,11 @@ async def create_scan(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ScanResultRead:
+    """Uploads a .zip archive, scans it synchronously, and returns the
+    findings, risk score, and compliance percentage. Also triggers a
+    best-effort report upload to S3 (see docs/AWS_INTEGRATION.md) — a
+    storage failure doesn't fail this request.
+    """
     file_bytes = await file.read()
     outcome = run_zip_scan(
         db, user_id=current_user.id, filename=file.filename or "upload.zip", file_bytes=file_bytes
@@ -42,6 +47,9 @@ async def create_scan(
 def list_scans(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> list[ScanJobRead]:
+    """Lists the authenticated user's scans, most recent first. Does not
+    include findings or score — use GET /scans/{id} for the full result.
+    """
     return ScanRepository(db).list_scan_jobs(current_user.id)
 
 
@@ -53,10 +61,13 @@ def get_scan(
 ) -> ScanResultRead:
     """Returns the scan job plus its findings and a freshly-computed score.
 
-    The score isn't persisted (no Report row yet — that lands in Phase 4
-    alongside S3 storage), so it's recomputed from the persisted findings
-    on every request. Cheap at this data size, and keeps scoring logic in
-    exactly one place rather than duplicating it in the frontend.
+    The score isn't persisted on the ScanJob itself — it's recomputed
+    from the persisted findings on every request. Cheap at this data
+    size, and keeps scoring logic in exactly one place rather than
+    duplicating it in the frontend. (A persisted, versioned Report
+    row does exist separately — see GET /scans/{id}/report — but it
+    stores the score as of when the report was generated, not a live
+    recomputation.)
     """
     repo = ScanRepository(db)
     scan_job = repo.get_scan_job(scan_id, current_user.id)
@@ -81,6 +92,10 @@ def get_scan_findings(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[FindingRead]:
+    """Returns just the findings for a scan, without the job metadata or
+    score — a lighter-weight alternative to GET /scans/{id} for callers
+    that only need the findings list.
+    """
     repo = ScanRepository(db)
     scan_job = repo.get_scan_job(scan_id, current_user.id)
     if scan_job is None:

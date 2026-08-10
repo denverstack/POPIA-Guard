@@ -76,7 +76,7 @@ in-memory fake if needed.
 The original planning pass for this project considered a full "enterprise"
 layer split (presentation / business / repository / service /
 infrastructure / auth / cloud / database as eight distinct packages). In
-practice that split doesn't hold up for a project this size — several of
+practice that split doesn't hold up for a project this size, several of
 those layers would be one-file packages with a single class. Collapsing them
 into API → Service → Repository keeps the separation that actually matters
 (HTTP concerns vs. business logic vs. persistence) without empty ceremony.
@@ -100,5 +100,5 @@ into API → Service → Repository keeps the separation that actually matters
 Local development runs via `docker/docker-compose.yml` (API + PostgreSQL).
 Production deployment (Phase 4) targets a single EC2 instance running the
 production Docker image behind Nginx, with S3 and RDS/PostgreSQL as managed
-dependencies — deliberately simple rather than introducing an orchestrator
+dependencies, deliberately simple rather than introducing an orchestrator
 for a project of this size.

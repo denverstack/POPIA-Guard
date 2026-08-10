@@ -56,7 +56,7 @@ erDiagram
 
 ## Design notes
 
-**`User`** is intentionally minimal — no role column. Role-based access
+**`User`** is intentionally minimal,  no role column. Role-based access
 control was cut from this project's scope (see the main README); adding a
 `role` column back in is a one-line migration if that changes.
 
@@ -81,6 +81,6 @@ once at generation time and stored, rather than recomputed on every read.
 
 ## What's out of scope
 
-No audit-log table, no notification table, no settings table — none of
+No audit-log table, no notification table, no settings table, none of
 those are needed for the core pipeline this project demonstrates, and
 adding them now would be schema for features that don't exist yet.

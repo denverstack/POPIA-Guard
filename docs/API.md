@@ -1,7 +1,7 @@
 # API Reference
 
 Full interactive documentation (Swagger UI, generated directly from the
-code — request/response schemas, try-it-out) is available at
+code  request/response schemas, try-it-out) is available at
 `http://localhost:8000/docs` when the API is running. The raw OpenAPI
 spec is also exported to [`docs/openapi.json`](openapi.json) in this repo
 for reference without running the app.

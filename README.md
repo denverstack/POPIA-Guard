@@ -14,7 +14,7 @@ review in a dashboard.
 
 South Africa's Protection of Personal Information Act (POPIA) requires
 organisations to know where personal information lives in their systems.
-Source code and config files are a common, overlooked leak vector — hardcoded
+Source code and config files are a common, overlooked leak vector, hardcoded
 test data, seeded fixtures, and `.env` files that made it into a commit all
 count. POPIA Guard scans a repository or upload for that class of problem
 alongside the more familiar secret-detection use case (API keys, tokens,
@@ -136,7 +136,7 @@ npx tsc --noEmit -p tsconfig.app.json
 npm run build
 ```
 
-There's no frontend test suite yet (component/E2E tests) — see the roadmap.
+There's no frontend test suite yet (component/E2E tests). See the roadmap.
 
 ## Folder structure
 

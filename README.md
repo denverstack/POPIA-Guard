@@ -32,7 +32,7 @@ suite. It covers:
 - A minimal dashboard to trigger scans and review results
 
 It deliberately does **not** include role-based access control, an admin
-console, or multi-format report export — those add surface area without
+console, or multi-format report export, those add surface area without
 adding to the core demonstration of the detection engine and pipeline.
 
 ## Architecture
@@ -112,7 +112,7 @@ curl http://localhost:8000/api/v1/scans/<scan_id>/report \
 ```
 
 A scan response includes the computed findings, risk score, and compliance
-percentage inline — see [`docs/SCANNER_DESIGN.md`](docs/SCANNER_DESIGN.md)
+percentage inline. See [`docs/SCANNER_DESIGN.md`](docs/SCANNER_DESIGN.md)
 for what's detected and how findings are scored, and
 [`docs/AWS_INTEGRATION.md`](docs/AWS_INTEGRATION.md) for how reports are
 stored in S3. For running the production Docker images, see

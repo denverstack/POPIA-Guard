@@ -30,7 +30,7 @@ Obtained from `POST /auth/login`. Tokens expire after 60 minutes
 | GET    | `/api/v1/scans/{id}/report` | Yes  | Presigned S3 URL for the stored report (1hr expiry) |
 | GET    | `/health`                   | No   | Liveness check |
 
-Every `/scans/*` endpoint is scoped to the authenticated user — there's no
+Every `/scans/*` endpoint is scoped to the authenticated user, there's no
 way to read another user's scan by guessing an ID (404, not 403, to avoid
 confirming the ID exists at all).
 
@@ -72,4 +72,4 @@ curl -X POST http://localhost:8000/api/v1/scans \
 ```
 
 (Requires [`jq`](https://jqlang.org/) for the token extraction shown
-here — see the README's Quick Start for a version without it.)
+here. See the README's Quick Start for a version without it.)

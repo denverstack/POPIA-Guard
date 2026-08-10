@@ -9,7 +9,7 @@ setup (Terraform/CloudFormation),  out of scope for this project; see the
 
 Two separate images, each multi-stage to keep the final image lean:
 
-- **`backend/Dockerfile.prod`** — installs dependencies in a builder
+- **`backend/Dockerfile.prod`**  installs dependencies in a builder
   stage, then copies only the installed packages (not build tools like
   `gcc`) into a slim runtime image, running as a non-root user.
 - **`frontend/Dockerfile.prod`**  builds the static Vite bundle in a

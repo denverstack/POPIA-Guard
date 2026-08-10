@@ -4,9 +4,9 @@ Source code compliance scanner that detects POPIA-sensitive data and leaked
 credentials in a codebase, then produces a report you can upload to S3 and
 review in a dashboard.
 
-> **Status:** Phase 3 complete — full stack runs end to end: sign up, log
-> in, upload a zip, and see findings/risk score in the dashboard.
-> See [ROADMAP](#roadmap) below.
+> **Status:** Phase 4 complete — scan reports are stored in S3 and
+> downloadable via presigned URL, with a documented least-privilege IAM
+> policy and production Docker images. See [ROADMAP](#roadmap) below.
 
 ## Why this exists
 
@@ -50,7 +50,7 @@ See [`docs/DATABASE.md`](docs/DATABASE.md) for the schema and rationale.
 |-----------|-----------------------------------------------------|
 | Backend   | FastAPI, SQLAlchemy, Alembic, Pydantic, PostgreSQL |
 | Frontend  | React, TypeScript, Vite, TailwindCSS v4, TanStack Query, Chart.js |
-| Cloud     | Amazon S3 (report storage, presigned URLs) — Phase 4 |
+| Cloud     | Amazon S3 (report storage, presigned URLs)         |
 | Auth      | JWT (password + bcrypt)                            |
 | Testing   | Pytest                                             |
 | Container | Docker, Docker Compose                             |
@@ -103,11 +103,18 @@ curl -X POST http://localhost:8000/api/v1/scans \
 # List your past scans
 curl http://localhost:8000/api/v1/scans \
   -H "Authorization: Bearer <access_token>"
+
+# Get a fresh download link for the report (see docs/AWS_INTEGRATION.md)
+curl http://localhost:8000/api/v1/scans/<scan_id>/report \
+  -H "Authorization: Bearer <access_token>"
 ```
 
 A scan response includes the computed findings, risk score, and compliance
 percentage inline — see [`docs/SCANNER_DESIGN.md`](docs/SCANNER_DESIGN.md)
-for what's detected and how findings are scored.
+for what's detected and how findings are scored, and
+[`docs/AWS_INTEGRATION.md`](docs/AWS_INTEGRATION.md) for how reports are
+stored in S3. For running the production Docker images, see
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Running tests
 
@@ -134,7 +141,7 @@ There's no frontend test suite yet (component/E2E tests) — see the roadmap.
 - [x] Phase 1 — Project structure, architecture, database design
 - [x] Phase 2 — Backend: auth, REST API, scanner engine implementation
 - [x] Phase 3 — Frontend dashboard
-- [ ] Phase 4 — S3 integration
+- [x] Phase 4 — S3 integration
 - [ ] Phase 5 — CI pipeline
 - [ ] Phase 6 — Documentation pass and v1.0.0 release
 

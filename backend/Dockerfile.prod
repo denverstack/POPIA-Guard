@@ -1,0 +1,40 @@
+# Stage 1: build dependencies in an isolated layer so the final image
+# doesn't carry compilers/build headers it doesn't need at runtime.
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Stage 2: runtime image — only what's needed to run the app.
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 1000 appuser
+
+WORKDIR /app
+
+COPY --from=builder /root/.local /home/appuser/.local
+COPY --chown=appuser:appuser . .
+
+USER appuser
+ENV PATH=/home/appuser/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# No --reload, no dev dependencies. Migrations are run as a separate step
+# in deployment (not baked into the container's startup command), so a
+# container restart never accidentally re-runs migrations mid-traffic.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

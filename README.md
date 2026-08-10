@@ -190,17 +190,17 @@ popia-guard/
 Ideas for where this could go next, not commitments:
 
 - Role-based access control (an `Admin` role that can see all scans, not
-  just its own) — the schema was deliberately left without a `role`
+  just its own), the schema was deliberately left without a `role`
   column, but it's a one-line migration away if needed
 - Async scan processing for large repositories (currently synchronous;
   fine at the file counts this is designed for, not for a 50k-file
   monorepo)
 - Rate limiting on `/auth/*`
 - A frontend test suite (component tests + a couple of E2E smoke tests)
-- Additional report export formats (PDF, CSV) — cut from v1.0.0 scope
+- Additional report export formats (PDF, CSV) cut from v1.0.0 scope
   deliberately, see the Scope section above
 - Entropy-based generic secret detection, with the false-positive tuning
-  that requires — see the exclusions in `docs/SCANNER_DESIGN.md`
+  that requires. see the exclusions in `docs/SCANNER_DESIGN.md`
 
 ## Roadmap
 

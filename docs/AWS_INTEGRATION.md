@@ -14,7 +14,7 @@ s3://<bucket>/reports/<user_id>/<scan_id>.json
 ```
 
 Only the object key is persisted in PostgreSQL (the `Report.s3_key`
-column — see [`docs/DATABASE.md`](DATABASE.md)). No long-lived URL is
+column. See [`docs/DATABASE.md`](DATABASE.md)). No long-lived URL is
 stored, because presigned URLs expire; `GET /scans/{id}/report` generates
 a fresh one (1 hour expiry) on every request.
 
@@ -22,11 +22,11 @@ a fresh one (1 hour expiry) on every request.
 
 1. Create a bucket (region should match `AWS_REGION` in your `.env` —
    defaults to `af-south-1`).
-2. Enable **Block all public access** — nothing in this bucket is ever
+2. Enable **Block all public access** —Nothing in this bucket is ever
    meant to be publicly reachable. All access goes through presigned URLs
    issued by the API on behalf of an authenticated, authorized user, or
    through the IAM credentials below.
-3. No bucket policy is required beyond the default (private) — access is
+3. No bucket policy is required beyond the default (private) Access is
    controlled entirely via the IAM policy below, not bucket-level rules.
 
 ## IAM policy
@@ -73,8 +73,8 @@ Put the resulting access key ID and secret into `.env` as
 ## Behaviour without AWS credentials configured
 
 `.env.example` ships with blank AWS credentials. With no credentials
-configured, **scanning still works fully** — findings are detected,
-scored, and returned — but report storage silently fails and is skipped
+configured, **scanning still works fully** Findings are detected,
+scored, and returned  but report storage silently fails and is skipped
 (see `scan_service._try_store_report`, which treats S3 as best-effort and
 logs a warning rather than failing the scan). `GET /scans/{id}/report`
 will 404 in that case. This is a deliberate resilience choice: an S3
@@ -85,12 +85,12 @@ feature.
 
 This project doesn't have a live AWS account wired up for automated
 testing. The S3 integration is tested against a mocked S3 backend
-([`moto`](https://github.com/getmoto/moto)) — every backend test runs
+([`moto`](https://github.com/getmoto/moto)) Every backend test runs
 inside a mocked AWS environment via an autouse pytest fixture, so no test
 ever makes a real network call to AWS. The integration test for the
 report endpoint goes as far as actually issuing an HTTP GET against the
 generated presigned URL and checking the returned content matches what
-was scanned — not just asserting the URL string looks plausible.
+was scanned not just asserting the URL string looks plausible.
 
 Before pointing this at a real bucket, verify manually: set real
 credentials in `.env`, run a scan, and confirm `GET /scans/{id}/report`
